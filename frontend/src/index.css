@@ -1,5 +1,4 @@
-/* frontend/src/index.css */
-
+/* Tailwind base styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,29 +17,250 @@
   }
 }
 
-.typing-indicator {
+/* Typing indicator animation */
+.typing-indicator, .typing-dots {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
-.typing-indicator span {
+.typing-indicator span,
+.typing-dots span {
   width: 4px;
   height: 4px;
-  background-color: #6b7280;
+  background-color: #6B7280;
   border-radius: 50%;
-  animation: typing 1s infinite;
+  animation: typing 1.4s infinite;
 }
 
-.typing-indicator span:nth-child(2) {
+.typing-indicator span:nth-child(2),
+.typing-dots span:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-.typing-indicator span:nth-child(3) {
+.typing-indicator span:nth-child(3),
+.typing-dots span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
 @keyframes typing {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Transition for typing indicator */
+.typing-indicator-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.typing-indicator-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.typing-indicator-exit {
+  opacity: 1;
+}
+
+.typing-indicator-exit-active {
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+/* Layout adjustments for full height and fixed bottom elements */
+html, body, #root, .h-screen {
+  height: 100vh;
+  height: -webkit-fill-available;
+  margin: 0;
+  padding: 0;
+}
+
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Smooth scrolling */
+.overflow-y-auto {
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 5px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* Add to frontend/src/index.css */
+
+/* Ensure full height layout */
+html, body, #root {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Improve scrollbar appearance */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 5px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* Prevent content shift when scrollbar appears */
+.overflow-y-auto {
+  margin-right: calc(-1 * (100vw - 100%));
+}
+
+/* Fixed sidebar styles */
+.fixed-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 16rem; /* 64px */
+  z-index: 40;
+}
+
+/* Add to index.css */
+
+.typing-dots span {
+  width: 4px;
+  height: 4px;
+  margin: 0 1px;
+  background-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Custom scrollbar */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #4B5563 transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #4B5563;
+  border-radius: 3px;
+}
+
+/* Add to index.css */
+.typing-dots {
+  display: flex;
+  gap: 2px;
+  padding: 8px 0;
+}
+
+.typing-dots span {
+  width: 4px;
+  height: 4px;
+  background-color: #6B7280;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: scale(0);
+  } 
+  40% { 
+    transform: scale(1.0);
+  }
+}
+
+/* Improved scrollbar */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #E5E7EB transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #E5E7EB;
+  border-radius: 2px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #D1D5DB;
 }

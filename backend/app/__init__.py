@@ -4,6 +4,9 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.config import Config
 import os
+from flask_socketio import SocketIO
+
+socketio = SocketIO(cors_allowed_origins="*")
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -54,5 +57,5 @@ def create_app(config_class=Config):
     # Create database tables
     with app.app_context():
         db.create_all()
-    
+    socketio.init_app(app)
     return app
