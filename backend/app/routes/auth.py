@@ -7,10 +7,13 @@ from app import db
 
 auth_bp = Blueprint('auth', __name__)
 
+# backend/app/routes/auth.py
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     try:
         data = request.get_json()
+        print("Registration data received:", data)  # Debug print
         
         if User.query.filter_by(email=data['email']).first():
             return jsonify({'error': 'Email already registered'}), 400
@@ -18,19 +21,22 @@ def register():
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
         
+        # Create new user
         user = User(
             username=data['username'],
             email=data['email']
         )
         user.set_password(data['password'])
         
-        # First user is admin
+        # Make first user admin
         if User.query.count() == 0:
             user.is_admin = True
+            print("Creating admin user")  # Debug print
         
         db.session.add(user)
         db.session.commit()
         
+        # Create access token
         access_token = create_access_token(identity=user.id)
         
         return jsonify({
@@ -46,19 +52,26 @@ def register():
         
     except Exception as e:
         db.session.rollback()
+        print(f"Registration error: {str(e)}")  # Debug print
         return jsonify({'error': str(e)}), 400
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     try:
         data = request.get_json()
+        print("Login attempt for email:", data.get('email'))  # Debug print
         
         user = User.query.filter_by(email=data['email']).first()
+        if not user:
+            print("User not found")  # Debug print
+            return jsonify({'error': 'Invalid email or password'}), 401
         
-        if not user or not user.check_password(data['password']):
+        if not user.check_password(data['password']):
+            print("Invalid password")  # Debug print
             return jsonify({'error': 'Invalid email or password'}), 401
         
         access_token = create_access_token(identity=user.id)
+        print("Login successful for user:", user.username)  # Debug print
         
         return jsonify({
             'message': 'Login successful',
@@ -72,6 +85,7 @@ def login():
         }), 200
         
     except Exception as e:
+        print(f"Login error: {str(e)}")  # Debug print
         return jsonify({'error': str(e)}), 400
 
 @auth_bp.route('/me', methods=['GET'])
