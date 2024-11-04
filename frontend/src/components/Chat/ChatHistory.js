@@ -1,40 +1,75 @@
-import React, { useState, useEffect } from 'react';
+// ChatHistory.js
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { 
-  PlusIcon,
-  ChatBubbleLeftIcon,
-  TrashIcon 
-} from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Loading from '../common/Loading';
 
-const ChatHistory = ({ currentChatId }) => {
+const ChatHistory = ({ currentChatId, onLogout }) => {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchChats();
-  }, [currentChatId]);
-
-  const fetchChats = async () => {
+  const fetchChats = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found');
+        navigate('/login');
+        return;
+      }
+
+      // Note the /api/chat prefix in the URL
+      console.log('Fetching chats from:', `${process.env.REACT_APP_API_URL}/api/chat/chats`);
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/chat/chats`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            'Authorization': `Bearer ${token}`
+          }
         }
       );
-      setChats(response.data.chats);
+
+      console.log('Chats response:', response.data);
+
+      if (response.data && response.data.chats) {
+        const sortedChats = response.data.chats.sort((a, b) => {
+          const dateA = new Date(b.updated_at || b.created_at);
+          const dateB = new Date(a.updated_at || a.created_at);
+          return dateA - dateB;
+        });
+        
+        console.log('Sorted chats:', sortedChats);
+        setChats(sortedChats);
+      }
     } catch (error) {
-      if (error.response?.status === 401) {
-        navigate('/login');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+
+      if (error.message.includes('Network Error')) {
+        toast.error('Unable to connect to server. Please check your connection.');
+      } else if (error.response?.status === 401) {
+        if (onLogout) {
+          onLogout();
+        } else {
+          navigate('/login');
+        }
+      } else {
+        toast.error('Error loading chat history');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, onLogout]);
+
+  useEffect(() => {
+    fetchChats();
+  }, [fetchChats]);
 
   const handleDeleteChat = async (chatId, e) => {
     e.preventDefault();
@@ -51,67 +86,63 @@ const ChatHistory = ({ currentChatId }) => {
         }
       );
       
-      setChats(chats.filter(chat => chat.id !== chatId));
-      if (chatId === currentChatId) {
+      setChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
+      if (chatId.toString() === currentChatId) {
         navigate('/chat');
       }
+      
       toast.success('Chat deleted successfully');
     } catch (error) {
-      toast.error('Error deleting chat');
+      console.error('Error deleting chat:', error);
+      if (error.response?.status === 401) {
+        if (onLogout) {
+          onLogout();
+        } else {
+          navigate('/login');
+        }
+      } else {
+        toast.error('Error deleting chat');
+      }
     }
   };
 
-
-  // frontend/src/components/Chat/ChatHistory.js
-
-return (
-  <div className="flex flex-col h-full bg-gray-800 text-white">
-    {/* New Chat Button */}
-    <div className="p-4">
-      <Link
-        to="/chat"
-        className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2"
-      >
-        <PlusIcon className="h-5 w-5" />
-        <span>New Chat</span>
-      </Link>
-    </div>
-
-    {/* Chat List - Make it scrollable and fill remaining height */}
-    <div className="flex-1 overflow-y-auto">
+  return (
+    <nav className="space-y-1">
       {loading ? (
-        <div className="text-center py-4">Loading...</div>
+        <div className="text-center py-4">
+          <Loading size="small" />
+        </div>
       ) : chats.length === 0 ? (
-        <div className="text-center py-4 text-gray-400">No chats yet</div>
+        <div className="text-center py-4 text-gray-500 text-sm">
+          No conversations yet
+        </div>
       ) : (
-        <nav className="space-y-1 px-2">
-          {chats.map((chat) => (
-            <Link
-              key={chat.id}
-              to={`/chat/${chat.id}`}
-              className={`flex items-center justify-between group px-2 py-2 text-sm rounded-md ${
-                currentChatId === chat.id.toString()
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+        chats.map((chat) => (
+          <Link
+            key={chat.id}
+            to={`/chat/${chat.id}`}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors group ${
+              currentChatId === chat.id.toString()
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <ChatBubbleLeftIcon className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate flex-1">
+              {chat.title || 'New Conversation'}
+            </span>
+            <button
+              onClick={(e) => handleDeleteChat(chat.id, e)}
+              className="opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity"
+              title="Delete chat"
             >
-              <div className="flex items-center">
-                <ChatBubbleLeftIcon className="mr-3 h-5 w-5" />
-                <span className="truncate">{chat.title}</span>
-              </div>
-              <button
-                onClick={(e) => handleDeleteChat(chat.id, e)}
-                className="opacity-0 group-hover:opacity-100 ml-2 text-gray-400 hover:text-red-500"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
-            </Link>
-          ))}
-        </nav>
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          </Link>
+        ))
       )}
-    </div>
-  </div>
-);
+    </nav>
+  );
 };
 
 export default ChatHistory;
