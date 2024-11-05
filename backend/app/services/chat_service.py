@@ -22,13 +22,21 @@ class ChatService:
 
             Details: Present key points using bullet points. Focus on relevant facts and data.
 
-            Statistics: When presenting numerical data, include charts. Format your chart data as follows:
+            Statistics: When presenting numerical data, choose the most appropriate chart type:
+            - Use 'line' charts for time series data and trends over time
+            - Use 'bar' charts for comparing categories or showing rankings
+            - Use 'pie' charts for showing proportions of a whole
+
+            Format your chart data as follows:
             ```
             {
-                "type": "bar" | "line" | "pie",
-                "data": [...data points...],
-                "xKey": "x-axis key name",
-                "yKey": "y-axis key name"
+                "type": "line" | "bar" | "pie",
+                "data": [
+                    {"name": "Label 1", "value": numeric_value},
+                    {"name": "Label 2", "value": numeric_value}
+                ],
+                "xKey": "name",
+                "yKey": "value"
             }
             ```
 
@@ -63,29 +71,44 @@ class ChatService:
                 model=Config.CHAT_MODEL,
                 messages=conversation,
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=1500  # Increased token limit for more detailed responses
             )
             
-            # Process the response to ensure proper formatting
+            # Process the response
             chat_content = response.choices[0].message.content
             
-            # Ensure the response has all required sections
-            sections = ['Summary:', 'Details:', 'Statistics:', 'Commentary:']
+            # Ensure all sections are present and properly formatted
+            required_sections = {
+                'Summary:': '\nNo summary provided.',
+                'Details:': '\nNo details provided.',
+                'Statistics:': '\n```{"type":"bar","data":[],"xKey":"name","yKey":"value"}```',
+                'Commentary:': '\nNo commentary provided.'
+            }
+            
             formatted_content = chat_content
             
-            for section in sections:
+            # Add missing sections and ensure proper formatting
+            for section, default_content in required_sections.items():
                 if section not in formatted_content:
-                    if section == 'Statistics:':
-                        # Add default chart data if statistics section is missing
-                        default_stats = {
-                            'type': 'bar',
-                            'data': [],
-                            'xKey': 'name',
-                            'yKey': 'value'
-                        }
-                        formatted_content += f"\n\n{section}\n```{json.dumps(default_stats)}```"
+                    formatted_content += f"\n\n{section}{default_content}"
+                elif section == 'Statistics:' and '```' not in formatted_content:
+                    # If Statistics section exists but no JSON, add default chart data
+                    stats_index = formatted_content.index('Statistics:')
+                    next_section_index = float('inf')
+                    for next_section in required_sections.keys():
+                        if next_section != 'Statistics:':
+                            pos = formatted_content.find(next_section, stats_index)
+                            if pos != -1 and pos < next_section_index:
+                                next_section_index = pos
+                    
+                    if next_section_index == float('inf'):
+                        formatted_content += default_content
                     else:
-                        formatted_content += f"\n\n{section}\nNo {section.lower().strip(':')} provided."
+                        formatted_content = (
+                            formatted_content[:stats_index + 11] +  # 11 is length of "Statistics:"
+                            default_content +
+                            formatted_content[next_section_index:]
+                        )
             
             return formatted_content
 

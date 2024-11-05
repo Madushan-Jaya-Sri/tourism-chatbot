@@ -3,8 +3,10 @@ import ReactMarkdown from 'react-markdown';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer
+  ResponsiveContainer, Cell
 } from 'recharts';
+
+const COLORS = ['#4F46E5', '#818CF8', '#6366F1', '#4338CA', '#3730A3'];
 
 const ChartComponent = ({ chartData }) => {
   if (!chartData?.type || !chartData?.data) return null;
@@ -20,7 +22,12 @@ const ChartComponent = ({ chartData }) => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey={chartData.yKey || 'value'} stroke="#4F46E5" />
+              <Line 
+                type="monotone" 
+                dataKey={chartData.yKey || 'value'} 
+                stroke="#4F46E5"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         );
@@ -33,7 +40,11 @@ const ChartComponent = ({ chartData }) => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey={chartData.yKey || 'value'} fill="#4F46E5" />
+              <Bar 
+                dataKey={chartData.yKey || 'value'} 
+                fill="#4F46E5"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -45,9 +56,15 @@ const ChartComponent = ({ chartData }) => {
                 data={chartData.data}
                 nameKey={chartData.nameKey || 'name'}
                 dataKey={chartData.valueKey || 'value'}
-                fill="#4F46E5"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
                 label
-              />
+              >
+                {chartData.data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
               <Tooltip />
               <Legend />
             </PieChart>
@@ -59,7 +76,7 @@ const ChartComponent = ({ chartData }) => {
   };
 
   return (
-    <div className="my-4 bg-white rounded-lg shadow-sm">
+    <div className="my-4 p-4 bg-gray-50 rounded-lg">
       {renderChart()}
     </div>
   );
@@ -69,9 +86,9 @@ const MessageSection = ({ title, content, isChart = false, chartData = null }) =
   if (!content && !chartData) return null;
 
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       <h3 className="text-sm font-semibold text-indigo-600 mb-2">{title}</h3>
-      <div className="text-sm text-gray-700">
+      <div className={`${isChart ? '' : 'prose prose-sm max-w-none text-gray-700'}`}>
         {isChart ? (
           <ChartComponent chartData={chartData} />
         ) : (
@@ -93,43 +110,44 @@ const MessageBubble = ({ message, isLast }) => {
 
   useEffect(() => {
     if (!isUser && message.content) {
-      // Extract sections
-      const sectionRegex = {
-        summary: /Summary:\s*([\s\S]*?)(?=Details:|$)/,
-        details: /Details:\s*([\s\S]*?)(?=Statistics:|$)/,
-        statistics: /Statistics:\s*([\s\S]*?)(?=Commentary:|$)/,
-        commentary: /Commentary:\s*([\s\S]*?)$/
-      };
+      // Extract sections with improved regex
+      const sectionsData = {};
+      const content = message.content;
 
-      const extractedSections = {};
-      Object.entries(sectionRegex).forEach(([key, regex]) => {
-        const match = message.content.match(regex);
-        extractedSections[key] = match?.[1]?.trim() || '';
-      });
+      // Extract each section
+      const summaryMatch = content.match(/Summary:([\s\S]*?)(?=Details:|$)/);
+      const detailsMatch = content.match(/Details:([\s\S]*?)(?=Statistics:|$)/);
+      const statisticsMatch = content.match(/Statistics:([\s\S]*?)(?=Commentary:|$)/);
+      const commentaryMatch = content.match(/Commentary:([\s\S]*?)$/);
 
-      // Parse chart data if present
-      if (extractedSections.statistics) {
-        const codeMatch = extractedSections.statistics.match(/```([\s\S]*?)```/);
-        if (codeMatch) {
+      sectionsData.summary = summaryMatch ? summaryMatch[1].trim() : '';
+      sectionsData.details = detailsMatch ? detailsMatch[1].trim() : '';
+      sectionsData.commentary = commentaryMatch ? commentaryMatch[1].trim() : '';
+
+      // Parse statistics JSON if present
+      if (statisticsMatch) {
+        const jsonMatch = statisticsMatch[1].match(/```([\s\S]*?)```/);
+        if (jsonMatch) {
           try {
-            extractedSections.statistics = JSON.parse(codeMatch[1]);
+            sectionsData.statistics = JSON.parse(jsonMatch[1].trim());
           } catch (error) {
             console.error('Error parsing chart data:', error);
-            extractedSections.statistics = null;
+            sectionsData.statistics = null;
           }
         }
       }
 
-      setSections(extractedSections);
+      setSections(sectionsData);
     }
   }, [message.content, isUser]);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`${
-        isUser 
-          ? 'bg-indigo-600 text-white ml-auto' 
-          : 'bg-white border border-gray-200'
+      <div 
+        className={`${
+          isUser 
+            ? 'bg-indigo-600 text-white ml-auto' 
+            : 'bg-white border border-gray-200'
         } rounded-lg shadow-sm ${
           isUser ? 'max-w-[70%]' : 'max-w-[85%]'
         } overflow-hidden`}
