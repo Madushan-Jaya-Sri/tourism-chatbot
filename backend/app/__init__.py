@@ -1,15 +1,19 @@
+# backend/app/__init__.py
+
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_socketio import SocketIO
+from flask_migrate import Migrate
 from app.config import Config
 import os
-from flask_socketio import SocketIO
 
-socketio = SocketIO(cors_allowed_origins="*")
-
+# Initialize extensions
 db = SQLAlchemy()
 jwt = JWTManager()
+socketio = SocketIO(cors_allowed_origins="*", async_mode='threading')
+migrate = Migrate()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -19,6 +23,8 @@ def create_app(config_class=Config):
     db.init_app(app)
     jwt.init_app(app)
     CORS(app)
+    socketio.init_app(app, cors_allowed_origins="*")
+    migrate.init_app(app, db)  # Initialize Flask-Migrate
     
     # Create upload and chroma_db folders if they don't exist
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -33,7 +39,6 @@ def create_app(config_class=Config):
     app.register_blueprint(chat_bp, url_prefix='/api/chat')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
-    # Add a root route
     @app.route('/')
     def index():
         return jsonify({
@@ -46,16 +51,11 @@ def create_app(config_class=Config):
             }
         })
 
-    # Add a health check route
     @app.route('/health')
     def health():
         return jsonify({
             'status': 'healthy',
             'database': 'connected'
         })
-    
-    # Create database tables
-    with app.app_context():
-        db.create_all()
-    socketio.init_app(app)
+
     return app
