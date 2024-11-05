@@ -1,4 +1,3 @@
-// ChatWindow.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -86,7 +85,6 @@ const ChatWindow = ({ user, setAuth }) => {
     try {
       const token = localStorage.getItem('token');
 
-      // Create new chat if none exists
       if (!currentChatId) {
         const chatResponse = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/chat/chat`,
@@ -99,7 +97,6 @@ const ChatWindow = ({ user, setAuth }) => {
         navigate(`/chat/${currentChatId}`);
       }
 
-      // Send message to server
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/chat/chat/${currentChatId}/messages`,
         { message: messageText },
@@ -108,7 +105,6 @@ const ChatWindow = ({ user, setAuth }) => {
         }
       );
 
-      // Set both messages at once after response is received
       const newMessages = [
         {
           id: Date.now(),
@@ -150,7 +146,7 @@ const ChatWindow = ({ user, setAuth }) => {
 
   const handleExampleClick = async (example) => {
     setProcessingExample(true);
-    setMessages([]); // Clear existing messages
+    setMessages([]);
     await sendMessage(example);
     setProcessingExample(false);
   };
@@ -181,135 +177,135 @@ const ChatWindow = ({ user, setAuth }) => {
 
     return (
       <div className="space-y-6">
-        {messages.map((message, index) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            isLast={index === messages.length - 1}
-          />
-        ))}
-        {(loading || typingEffect) && (
-          <div className="flex gap-4 items-start">
-            <div className="flex-1 max-w-[80%] bg-white border border-gray-200 rounded-lg p-4">
-              <div className="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
+          {messages.map((message, index) => (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isLast={index === messages.length - 1}
+            />
+          ))}
+          {(loading || typingEffect) && (
+            <div className="flex gap-4 items-start">
+              <div className="flex-1 max-w-[80%] bg-white border border-gray-200 rounded-lg p-4">
+                <div className="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </div>
             </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      );
+    };
+  
+    return (
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar */}
+        <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center mb-4">
+              <ChatBubbleLeftRightIcon className="h-8 w-8 text-indigo-600" />
+              <span className="ml-2 text-xl font-semibold text-gray-900">
+                Tourism Chat
+              </span>
+            </div>
+  
+            {/* User Profile Card */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center">
+              <UserCircleIcon className="h-10 w-10 text-indigo-600" />
+              <div className="ml-3">
+                <div className="font-medium text-gray-900">{user?.username}</div>
+                <div className="text-xs text-gray-500">Active Now</div>
+              </div>
+            </div>
+            
+            {/* New Chat Button */}
+            <button
+              onClick={() => {
+                setMessages([]);
+                setInputMessage('');
+                navigate('/chat');
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 px-4 transition-colors"
+              disabled={processingExample}
+            >
+              <PlusIcon className="h-5 w-5" />
+              <span>New chat</span>
+            </button>
           </div>
-        )}
-        <div ref={messagesEndRef} />
+  
+          {/* Chat History */}
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className="px-4">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Chat History
+              </h2>
+              <ChatHistory currentChatId={chatId} onLogout={handleLogout} />
+            </div>
+          </div>
+  
+          {/* User Profile & Actions */}
+          <div className="border-t border-gray-200 p-4 space-y-3">
+            {user?.is_admin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-2 p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Cog6ToothIcon className="h-5 w-5" />
+                <span className="text-sm">Admin Dashboard</span>
+              </Link>
+            )}
+  
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 w-full p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeftOnRectangleIcon className="h-5 w-5" />
+              <span className="text-sm">Sign out</span>
+            </button>
+          </div>
+        </div>
+  
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto px-4 py-6" style={{ width: '80%' }}>
+              {renderContent()}
+            </div>
+          </div>
+  
+          {/* Message Input */}
+          <div className="border-t border-gray-200 bg-white p-4">
+            <div className="max-w-3xl mx-auto">
+              <form onSubmit={handleSubmit} className="relative">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-50"
+                  disabled={loading || typingEffect || processingExample}
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !inputMessage.trim() || typingEffect || processingExample}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 ${
+                    loading || !inputMessage.trim() || typingEffect || processingExample
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-indigo-600 hover:text-indigo-700'
+                  }`}
+                >
+                  <PaperAirplaneIcon className="h-5 w-5" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
-
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
-        {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center mb-4">
-            <ChatBubbleLeftRightIcon className="h-8 w-8 text-indigo-600" />
-            <span className="ml-2 text-xl font-semibold text-gray-900">
-              Tourism Chat
-            </span>
-          </div>
-
-          {/* User Profile Card */}
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center">
-            <UserCircleIcon className="h-10 w-10 text-indigo-600" />
-            <div className="ml-3">
-              <div className="font-medium text-gray-900">{user?.username}</div>
-              <div className="text-xs text-gray-500">Active Now</div>
-            </div>
-          </div>
-          
-          {/* New Chat Button */}
-          <button
-            onClick={() => {
-              setMessages([]);
-              setInputMessage('');
-              navigate('/chat');
-            }}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 px-4 transition-colors"
-            disabled={processingExample}
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>New chat</span>
-          </button>
-        </div>
-
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="px-4">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Chat History
-            </h2>
-            <ChatHistory currentChatId={chatId} onLogout={handleLogout} />
-          </div>
-        </div>
-
-        {/* User Profile & Actions */}
-        <div className="border-t border-gray-200 p-4 space-y-3">
-          {user?.is_admin && (
-            <Link
-              to="/admin"
-              className="flex items-center gap-2 p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Cog6ToothIcon className="h-5 w-5" />
-              <span className="text-sm">Admin Dashboard</span>
-            </Link>
-          )}
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeftOnRectangleIcon className="h-5 w-5" />
-            <span className="text-sm">Sign out</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-4 py-6">
-            {renderContent()}
-          </div>
-        </div>
-
-        {/* Message Input */}
-        <div className="border-t border-gray-200 bg-white p-4">
-          <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleSubmit} className="relative">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-50"
-                disabled={loading || typingEffect || processingExample}
-              />
-              <button
-                type="submit"
-                disabled={loading || !inputMessage.trim() || typingEffect || processingExample}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 ${
-                  loading || !inputMessage.trim() || typingEffect || processingExample
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-indigo-600 hover:text-indigo-700'
-                }`}
-              >
-                <PaperAirplaneIcon className="h-5 w-5" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ChatWindow;
+  
+  export default ChatWindow;
