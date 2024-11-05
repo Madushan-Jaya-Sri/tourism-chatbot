@@ -1,7 +1,9 @@
-toursim-chatbot
+Toursim-chatbot
 .
 ├── README.md
 ├── backend
+│   ├── __pycache__
+│   │   └── run.cpython-311.pyc
 │   ├── app
 │   │   ├── __init__.py
 │   │   ├── __pycache__
@@ -38,6 +40,17 @@ toursim-chatbot
 │   │       ├── length.bin
 │   │       └── link_lists.bin
 │   ├── create_admin.py
+│   ├── migrations
+│   │   ├── README
+│   │   ├── __pycache__
+│   │   │   └── env.cpython-311.pyc
+│   │   ├── alembic.ini
+│   │   ├── env.py
+│   │   ├── script.py.mako
+│   │   └── versions
+│   │       ├── 179e3db397f4_add_new_pdf_document_fields.py
+│   │       └── __pycache__
+│   │           └── 179e3db397f4_add_new_pdf_document_fields.cpython-311.pyc
 │   ├── requirements.txt
 │   ├── run.py
 │   ├── test_AWS.py
@@ -79,7 +92,6 @@ toursim-chatbot
     │   │   │   ├── ChatWindow.js
     │   │   │   ├── MessageBubble.js
     │   │   │   └── WelcomeScreen.js
-    │   │   ├── ModernChatLayout.js
     │   │   └── common
     │   │       ├── Loading.js
     │   │       └── Navbar.js
@@ -90,4 +102,4 @@ toursim-chatbot
     │       └── auth.js
     └── tailwind.config.js
 
-25 directories, 65 files
+30 directories, 72 files
