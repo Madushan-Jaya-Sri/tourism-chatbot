@@ -1,0 +1,93 @@
+toursim-chatbot
+.
+├── README.md
+├── backend
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   └── config.cpython-311.pyc
+│   │   ├── config.py
+│   │   ├── models
+│   │   │   ├── __pycache__
+│   │   │   │   ├── chat.cpython-311.pyc
+│   │   │   │   └── user.cpython-311.pyc
+│   │   │   ├── chat.py
+│   │   │   └── user.py
+│   │   ├── routes
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-311.pyc
+│   │   │   │   ├── auth.cpython-311.pyc
+│   │   │   │   └── chat.cpython-311.pyc
+│   │   │   ├── admin.py
+│   │   │   ├── auth.py
+│   │   │   └── chat.py
+│   │   └── services
+│   │       ├── __pycache__
+│   │       │   ├── chat_service.cpython-311.pyc
+│   │       │   └── pdf_processor.cpython-311.pyc
+│   │       ├── chat_service.py
+│   │       ├── embedding_service.py
+│   │       └── pdf_processor.py
+│   ├── check.py
+│   ├── chroma_db
+│   │   ├── chroma.sqlite3
+│   │   └── e8e34384-c409-4366-98fe-c024920bf304
+│   │       ├── data_level0.bin
+│   │       ├── header.bin
+│   │       ├── length.bin
+│   │       └── link_lists.bin
+│   ├── create_admin.py
+│   ├── requirements.txt
+│   ├── run.py
+│   ├── test_AWS.py
+│   └── test_db.py
+├── chroma_db
+│   ├── 00452291-4418-4c90-ab14-a608267a0275
+│   │   ├── data_level0.bin
+│   │   ├── header.bin
+│   │   ├── length.bin
+│   │   └── link_lists.bin
+│   └── chroma.sqlite3
+├── docker
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   └── docker-compose.yml
+├── folder_structure.txt
+└── frontend
+    ├── chroma_db
+    │   └── chroma.sqlite3
+    ├── package-lock.json
+    ├── package.json
+    ├── postcss.config.js
+    ├── public
+    │   ├── index.html
+    │   ├── logo.jpeg
+    │   ├── logo.webp
+    │   └── manifest.json
+    ├── src
+    │   ├── app.js
+    │   ├── components
+    │   │   ├── Admin
+    │   │   │   ├── Dashboard.js
+    │   │   │   └── FileUpload.js
+    │   │   ├── Auth
+    │   │   │   ├── Login.js
+    │   │   │   └── Register.js
+    │   │   ├── Chat
+    │   │   │   ├── ChatHistory.js
+    │   │   │   ├── ChatWindow.js
+    │   │   │   ├── MessageBubble.js
+    │   │   │   └── WelcomeScreen.js
+    │   │   ├── ModernChatLayout.js
+    │   │   └── common
+    │   │       ├── Loading.js
+    │   │       └── Navbar.js
+    │   ├── index.css
+    │   ├── index.js
+    │   └── utils
+    │       ├── api.js
+    │       └── auth.js
+    └── tailwind.config.js
+
+25 directories, 65 files

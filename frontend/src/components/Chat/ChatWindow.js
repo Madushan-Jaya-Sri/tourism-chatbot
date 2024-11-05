@@ -20,6 +20,7 @@ const ChatWindow = ({ user, setAuth }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [processingExample, setProcessingExample] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
   const [typingEffect, setTypingEffect] = useState(false);
   const messagesEndRef = useRef(null);
@@ -42,8 +43,6 @@ const ChatWindow = ({ user, setAuth }) => {
     setMessageLoading(true);
     try {
       const token = localStorage.getItem('token');
-      console.log('Fetching messages for chat:', chatId);
-      
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/chat/chat/${chatId}`,
         {
@@ -51,21 +50,11 @@ const ChatWindow = ({ user, setAuth }) => {
         }
       );
       
-      console.log('Messages response:', response.data);
-      
       if (response.data.chat && response.data.chat.messages) {
         setMessages(response.data.chat.messages);
       }
     } catch (error) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      if (error.message.includes('Network Error')) {
-        toast.error('Unable to connect to server. Please check your connection.');
-      } else if (error.response?.status === 401) {
+      if (error.response?.status === 401) {
         handleLogout();
       } else {
         toast.error('Error fetching messages');
@@ -87,86 +76,133 @@ const ChatWindow = ({ user, setAuth }) => {
     scrollToBottom();
   }, [messages, typingEffect, scrollToBottom]);
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || loading) return;
-  
+  const sendMessage = async (messageText) => {
+    if (!messageText.trim() || loading) return;
+
     setLoading(true);
+    setTypingEffect(true);
     let currentChatId = chatId;
-  
+
     try {
       const token = localStorage.getItem('token');
-      console.log('Sending message:', inputMessage);
-  
+
       // Create new chat if none exists
       if (!currentChatId) {
-        console.log('Creating new chat...');
         const chatResponse = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/chat/chat`,
-          { title: inputMessage.slice(0, 50) + '...' },
+          { title: messageText.slice(0, 50) + '...' },
           {
             headers: { Authorization: `Bearer ${token}` }
           }
         );
-        console.log('New chat response:', chatResponse.data);
         currentChatId = chatResponse.data.chat.id;
         navigate(`/chat/${currentChatId}`);
       }
-  
-      // Add user message immediately
-      const userMessage = {
-        id: Date.now(),
-        content: inputMessage,
-        role: 'user',
-        created_at: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setInputMessage('');
-      setTypingEffect(true);
-      scrollToBottom();
-  
+
       // Send message to server
-      console.log('Sending message to server...');
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/chat/chat/${currentChatId}/messages`,
-        { message: inputMessage },
+        { message: messageText },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      console.log('Message response:', response.data);
-  
-      // Add assistant response
+
+      // Set both messages at once after response is received
+      const newMessages = [
+        {
+          id: Date.now(),
+          content: messageText,
+          role: 'user',
+          created_at: new Date().toISOString()
+        }
+      ];
+
       if (response.data.response) {
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: response.data.response.id,
-            content: response.data.response.content,
-            role: 'assistant',
-            created_at: response.data.response.created_at
-          }]);
-          setTypingEffect(false);
-          scrollToBottom();
-        }, 500);
+        newMessages.push({
+          id: response.data.response.id,
+          content: response.data.response.content,
+          role: 'assistant',
+          created_at: response.data.response.created_at
+        });
       }
+
+      setMessages(prevMessages => [...prevMessages, ...newMessages]);
     } catch (error) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      if (error.message.includes('Network Error')) {
-        toast.error('Unable to connect to server. Please check your connection.');
-      } else if (error.response?.status === 401) {
+      console.error('Error sending message:', error);
+      if (error.response?.status === 401) {
         handleLogout();
       } else {
         toast.error('Error sending message');
       }
     } finally {
       setLoading(false);
+      setTypingEffect(false);
+      setInputMessage('');
+      scrollToBottom();
     }
-  }, [inputMessage, loading, chatId, navigate, scrollToBottom, handleLogout]);
+  };
+
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    await sendMessage(inputMessage);
+  };
+
+  const handleExampleClick = async (example) => {
+    setProcessingExample(true);
+    setMessages([]); // Clear existing messages
+    await sendMessage(example);
+    setProcessingExample(false);
+  };
+
+  const renderContent = () => {
+    if (processingExample) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full">
+          <div className="mb-4">
+            <Loading size="large" />
+          </div>
+          <p className="text-gray-600">Processing your question...</p>
+        </div>
+      );
+    }
+
+    if (messageLoading) {
+      return (
+        <div className="flex justify-center py-10">
+          <Loading size="medium" />
+        </div>
+      );
+    }
+
+    if (messages.length === 0) {
+      return <WelcomeScreen onExampleClick={handleExampleClick} />;
+    }
+
+    return (
+      <div className="space-y-6">
+        {messages.map((message, index) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isLast={index === messages.length - 1}
+          />
+        ))}
+        {(loading || typingEffect) && (
+          <div className="flex gap-4 items-start">
+            <div className="flex-1 max-w-[80%] bg-white border border-gray-200 rounded-lg p-4">
+              <div className="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -180,6 +216,15 @@ const ChatWindow = ({ user, setAuth }) => {
               Tourism Chat
             </span>
           </div>
+
+          {/* User Profile Card */}
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center">
+            <UserCircleIcon className="h-10 w-10 text-indigo-600" />
+            <div className="ml-3">
+              <div className="font-medium text-gray-900">{user?.username}</div>
+              <div className="text-xs text-gray-500">Active Now</div>
+            </div>
+          </div>
           
           {/* New Chat Button */}
           <button
@@ -189,6 +234,7 @@ const ChatWindow = ({ user, setAuth }) => {
               navigate('/chat');
             }}
             className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 px-4 transition-colors"
+            disabled={processingExample}
           >
             <PlusIcon className="h-5 w-5" />
             <span>New chat</span>
@@ -207,15 +253,6 @@ const ChatWindow = ({ user, setAuth }) => {
 
         {/* User Profile & Actions */}
         <div className="border-t border-gray-200 p-4 space-y-3">
-          {/* User Info */}
-          <div className="flex items-center p-2 rounded-lg">
-            <UserCircleIcon className="h-8 w-8 text-gray-400" />
-            <span className="ml-2 text-sm font-medium text-gray-700">
-              {user?.username}
-            </span>
-          </div>
-
-          {/* Admin Link */}
           {user?.is_admin && (
             <Link
               to="/admin"
@@ -226,7 +263,6 @@ const ChatWindow = ({ user, setAuth }) => {
             </Link>
           )}
 
-          {/* Sign Out Button */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 w-full p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -241,33 +277,7 @@ const ChatWindow = ({ user, setAuth }) => {
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-3xl mx-auto px-4 py-6">
-            {messageLoading ? (
-              <div className="flex justify-center py-10">
-                <Loading size="medium" />
-              </div>
-            ) : messages.length === 0 ? (
-              <WelcomeScreen onExampleClick={(example) => setInputMessage(example)} />
-            ) : (
-              <div className="space-y-6">
-                {messages.map((message, index) => (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isLast={index === messages.length - 1}
-                  />
-                ))}
-                {typingEffect && (
-                  <div className="flex gap-4 items-start">
-                    <div className="flex-1">
-                      <div className="typing-dots">
-                        <span></span><span></span><span></span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
+            {renderContent()}
           </div>
         </div>
 
@@ -280,13 +290,17 @@ const ChatWindow = ({ user, setAuth }) => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                disabled={loading}
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-50"
+                disabled={loading || typingEffect || processingExample}
               />
               <button
                 type="submit"
-                disabled={loading || !inputMessage.trim()}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-indigo-600 disabled:opacity-50"
+                disabled={loading || !inputMessage.trim() || typingEffect || processingExample}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 ${
+                  loading || !inputMessage.trim() || typingEffect || processingExample
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-indigo-600 hover:text-indigo-700'
+                }`}
               >
                 <PaperAirplaneIcon className="h-5 w-5" />
               </button>
