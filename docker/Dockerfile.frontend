@@ -1,6 +1,11 @@
 # Build stage
 FROM node:18 as build
 
+
+# Set NODE_OPTIONS environment variable to handle OpenSSL issue
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
+
 WORKDIR /app
 
 # Copy package files
