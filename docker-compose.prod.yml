@@ -14,7 +14,9 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY_BACKEND}:latest
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
     environment:
       - DB_NAME=tourism_sl_chatbot
       - DB_USER=${POSTGRES_USER}
@@ -31,6 +33,9 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - CHROMA_PERSIST_DIRECTORY=./chroma_db
       - UPLOAD_FOLDER=./uploads
+    volumes:
+      - chroma_data:/app/chroma_db
+      - upload_data:/app/uploads
     ports:
       - "5000:5000"
     depends_on:
@@ -38,12 +43,11 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    volumes:
-      - chroma_data:/app/chroma_db
-      - upload_data:/app/uploads
 
   frontend:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY_FRONTEND}:latest
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
     ports:
       - "80:80"
     environment:

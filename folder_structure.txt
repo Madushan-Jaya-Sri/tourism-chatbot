@@ -1,4 +1,4 @@
-Toursim-chatbot
+Tourism-chatbot
 .
 ├── README.md
 ├── backend
@@ -55,6 +55,7 @@ Toursim-chatbot
 │   ├── run.py
 │   ├── test_AWS.py
 │   └── test_db.py
+├── chatbot-tourism.pem
 ├── chroma_db
 │   ├── 00452291-4418-4c90-ab14-a608267a0275
 │   │   ├── data_level0.bin
@@ -64,12 +65,27 @@ Toursim-chatbot
 │   └── chroma.sqlite3
 ├── docker
 │   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── docker-compose.yml
+│   └── Dockerfile.frontend
+├── docker-compose.prod.yml
 ├── folder_structure.txt
 └── frontend
+    ├── build
+    │   ├── asset-manifest.json
+    │   ├── index.html
+    │   ├── logo.jpeg
+    │   ├── logo.webp
+    │   ├── manifest.json
+    │   └── static
+    │       ├── css
+    │       │   ├── main.650d6e86.css
+    │       │   └── main.650d6e86.css.map
+    │       └── js
+    │           ├── main.464eb70b.js
+    │           ├── main.464eb70b.js.LICENSE.txt
+    │           └── main.464eb70b.js.map
     ├── chroma_db
     │   └── chroma.sqlite3
+    ├── nginx.conf
     ├── package-lock.json
     ├── package.json
     ├── postcss.config.js
@@ -102,4 +118,4 @@ Toursim-chatbot
     │       └── auth.js
     └── tailwind.config.js
 
-30 directories, 72 files
+34 directories, 84 files
