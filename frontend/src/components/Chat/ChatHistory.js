@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { ChatBubbleLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
-import Loading from '../common/Loading';
+import Loading from '../common/loading';
 
 const ChatHistory = ({ currentChatId, onLogout }) => {
   const [chats, setChats] = useState([]);

@@ -13,7 +13,7 @@ import {
 import ChatHistory from './ChatHistory';
 import MessageBubble from './MessageBubble';
 import WelcomeScreen from './WelcomeScreen';
-import Loading from '../common/Loading';
+import Loading from '../common/loading';
 
 const ChatWindow = ({ user, setAuth }) => {
   const [messages, setMessages] = useState([]);

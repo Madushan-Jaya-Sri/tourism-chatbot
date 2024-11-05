@@ -9,7 +9,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Admin/Dashboard';
 import ChatWindow from './components/Chat/ChatWindow';
-import Loading from './components/common/Loading';
+import Loading from './components/common/loading';
 
 const App = () => {
   const [auth, setAuth] = useState(null);
