@@ -1,22 +1,23 @@
 # Build stage
-FROM node:18 as build
-
-# Set NODE_OPTIONS environment variable to handle OpenSSL issue
-ENV NODE_OPTIONS=--openssl-legacy-provider
+FROM node:16 as build
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Clear npm cache and install dependencies
+RUN npm cache clean --force && \
+    npm install
 
 # Copy the rest of the application
 COPY . .
 
-# List contents of /src/components/common to verify Loading.js is there
-RUN ls -R ./src/components/common
+# Debug: List contents to verify files
+RUN ls -la src/components/common/
+
+# Set NODE_ENV
+ENV NODE_ENV=production
 
 # Build the application
 RUN npm run build
