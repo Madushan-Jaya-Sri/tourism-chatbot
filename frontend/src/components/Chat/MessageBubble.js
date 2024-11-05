@@ -85,6 +85,15 @@ const ChartComponent = ({ chartData }) => {
 const MessageSection = ({ title, content, isChart = false, chartData = null }) => {
   if (!content && !chartData) return null;
 
+  if (title === "Statistics" && content?.trim().toLowerCase() === "none") {
+    return (
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-indigo-600 mb-2">{title}</h3>
+        <div className="text-gray-500 italic">None</div>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-6">
       <h3 className="text-sm font-semibold text-indigo-600 mb-2">{title}</h3>
@@ -124,15 +133,23 @@ const MessageBubble = ({ message, isLast }) => {
       sectionsData.details = detailsMatch ? detailsMatch[1].trim() : '';
       sectionsData.commentary = commentaryMatch ? commentaryMatch[1].trim() : '';
 
-      // Parse statistics JSON if present
+      // Handle statistics section
       if (statisticsMatch) {
-        const jsonMatch = statisticsMatch[1].match(/```([\s\S]*?)```/);
-        if (jsonMatch) {
-          try {
-            sectionsData.statistics = JSON.parse(jsonMatch[1].trim());
-          } catch (error) {
-            console.error('Error parsing chart data:', error);
-            sectionsData.statistics = null;
+        const statsContent = statisticsMatch[1].trim();
+        if (statsContent.toLowerCase() === 'none') {
+          sectionsData.statistics = 'none';
+        } else {
+          // Try to parse JSON if present
+          const jsonMatch = statsContent.match(/```([\s\S]*?)```/);
+          if (jsonMatch) {
+            try {
+              sectionsData.statistics = JSON.parse(jsonMatch[1].trim());
+            } catch (error) {
+              console.error('Error parsing chart data:', error);
+              sectionsData.statistics = 'none';
+            }
+          } else {
+            sectionsData.statistics = 'none';
           }
         }
       }
@@ -159,11 +176,15 @@ const MessageBubble = ({ message, isLast }) => {
             <div className="space-y-4">
               <MessageSection title="Summary" content={sections.summary} />
               <MessageSection title="Details" content={sections.details} />
-              <MessageSection 
-                title="Statistics" 
-                isChart={true} 
-                chartData={sections.statistics} 
-              />
+              {sections.statistics === 'none' ? (
+                <MessageSection title="Statistics" content="None" />
+              ) : (
+                <MessageSection 
+                  title="Statistics" 
+                  isChart={true} 
+                  chartData={sections.statistics} 
+                />
+              )}
               <MessageSection title="Commentary" content={sections.commentary} />
             </div>
           )}

@@ -22,12 +22,14 @@ class ChatService:
 
             Details: Present key points using bullet points. Focus on relevant facts and data.
 
-            Statistics: When presenting numerical data, choose the most appropriate chart type:
+            Statistics: Only include this section when numerical data visualization is relevant.
+            When including statistics, choose the most appropriate chart type:
             - Use 'line' charts for time series data and trends over time
             - Use 'bar' charts for comparing categories or showing rankings
             - Use 'pie' charts for showing proportions of a whole
+            If no statistical visualization is relevant, simply write "None"
 
-            Format your chart data as follows:
+            Format your chart data as follows (only when applicable):
             ```
             {
                 "type": "line" | "bar" | "pie",
@@ -40,7 +42,7 @@ class ChatService:
             }
             ```
 
-            Commentary: Provide analysis and recommendations based on the data presented.
+            Commentary: Provide analysis and recommendations based on the information presented.
             """
         }
 
@@ -71,17 +73,17 @@ class ChatService:
                 model=Config.CHAT_MODEL,
                 messages=conversation,
                 temperature=0.7,
-                max_tokens=1500  # Increased token limit for more detailed responses
+                max_tokens=1500
             )
             
             # Process the response
             chat_content = response.choices[0].message.content
             
-            # Ensure all sections are present and properly formatted
+            # Ensure required sections are present
             required_sections = {
                 'Summary:': '\nNo summary provided.',
                 'Details:': '\nNo details provided.',
-                'Statistics:': '\n```{"type":"bar","data":[],"xKey":"name","yKey":"value"}```',
+                'Statistics:': '\nNone',
                 'Commentary:': '\nNo commentary provided.'
             }
             
@@ -91,24 +93,6 @@ class ChatService:
             for section, default_content in required_sections.items():
                 if section not in formatted_content:
                     formatted_content += f"\n\n{section}{default_content}"
-                elif section == 'Statistics:' and '```' not in formatted_content:
-                    # If Statistics section exists but no JSON, add default chart data
-                    stats_index = formatted_content.index('Statistics:')
-                    next_section_index = float('inf')
-                    for next_section in required_sections.keys():
-                        if next_section != 'Statistics:':
-                            pos = formatted_content.find(next_section, stats_index)
-                            if pos != -1 and pos < next_section_index:
-                                next_section_index = pos
-                    
-                    if next_section_index == float('inf'):
-                        formatted_content += default_content
-                    else:
-                        formatted_content = (
-                            formatted_content[:stats_index + 11] +  # 11 is length of "Statistics:"
-                            default_content +
-                            formatted_content[next_section_index:]
-                        )
             
             return formatted_content
 
