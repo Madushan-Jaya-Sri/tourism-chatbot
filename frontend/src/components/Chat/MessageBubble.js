@@ -6,7 +6,7 @@ import {
   ResponsiveContainer, Cell
 } from 'recharts';
 
-const COLORS = ['#4F46E5', '#818CF8', '#6366F1', '#4338CA', '#3730A3'];
+const COLORS = ['#064E3B', '#065F46', '#047857', '#0F766E', '#115E59'];
 
 const ChartComponent = ({ chartData }) => {
   if (!chartData?.type || !chartData?.data) return null;
@@ -25,7 +25,7 @@ const ChartComponent = ({ chartData }) => {
               <Line 
                 type="monotone" 
                 dataKey={chartData.yKey || 'value'} 
-                stroke="#4F46E5"
+                stroke="#7d95e4"
                 strokeWidth={2}
               />
             </LineChart>
@@ -42,7 +42,7 @@ const ChartComponent = ({ chartData }) => {
               <Legend />
               <Bar 
                 dataKey={chartData.yKey || 'value'} 
-                fill="#4F46E5"
+                fill="#7d95e4"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
