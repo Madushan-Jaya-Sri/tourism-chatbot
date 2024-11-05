@@ -1,4 +1,4 @@
-// Navbar.js
+// frontend/src/components/common/Navbar.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -13,10 +13,13 @@ const Navbar = ({ user, setAuth }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setAuth(null);
-    toast.success('Logged out successfully');
-    navigate('/login');
+    // Add confirmation dialog
+    if (window.confirm('Are you sure you want to sign out?')) {
+      localStorage.removeItem('token');
+      setAuth(null);
+      toast.success('Logged out successfully');
+      navigate('/login');
+    }
   };
 
   return (

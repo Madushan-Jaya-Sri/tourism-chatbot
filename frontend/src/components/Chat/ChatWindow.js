@@ -27,10 +27,13 @@ const ChatWindow = ({ user, setAuth }) => {
   const navigate = useNavigate();
 
   const handleLogout = useCallback(() => {
-    localStorage.clear();
-    setAuth(null);
-    navigate('/login');
-    toast.success('Signed out successfully');
+    // Add confirmation dialog
+    if (window.confirm('Are you sure you want to sign out?')) {
+      localStorage.clear();
+      setAuth(null);
+      navigate('/login');
+      toast.success('Signed out successfully');
+    }
   }, [navigate, setAuth]);
 
   const scrollToBottom = useCallback(() => {
